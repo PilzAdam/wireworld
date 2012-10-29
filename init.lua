@@ -44,6 +44,8 @@ minetest.register_node("wireworld:electron_tail", {
 	groups = {dig_immediate=3, electron=1},
 })
 
+local run = true
+
 local function mark(pos)
 	local meta = minetest.env:get_meta(pos)
 	meta:set_string("wireworld_marked", "true")
@@ -101,6 +103,9 @@ minetest.register_abm({
 	interval = 1.0,
 	chance = 1,
 	action = function(pos, node, active_object_count, active_object_count_wider)
+		if not run then
+			return
+		end
 		if node.name == "wireworld:electron_head" then
 			if marked(pos) then
 				return
@@ -129,6 +134,32 @@ minetest.register_abm({
 			end
 			minetest.env:set_node(pos, {name="wireworld:conductor", param2=node.param2})
 			mark(pos)
+		end
+	end,
+})
+
+minetest.register_chatcommand("wireworld", {
+	params = "<on/off>",
+	description = "Turn wireworld on and off",
+	func = function(name, param)
+		if run then
+			if param == "on" then
+				minetest.chat_send_player(name, "Wireworld is already on")
+			elseif param == "off" then
+				run = false
+				minetest.chat_send_player(name, "Wireworld stopped")
+			else
+				minetest.chat_send_player(name, "Illegal param; use \"on\" or \"off\"")
+			end
+		else
+			if param == "on" then
+				run = true
+				minetest.chat_send_player(name, "Wireworld started")
+			elseif param == "off" then
+				minetest.chat_send_player(name, "Wireworld is already off")
+			else
+				minetest.chat_send_player(name, "Illegal param; use \"on\" or \"off\"")
+			end
 		end
 	end,
 })
